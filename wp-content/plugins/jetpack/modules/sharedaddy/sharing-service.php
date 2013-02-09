@@ -405,12 +405,15 @@ function sharing_add_footer() {
 	if ( apply_filters( 'sharing_js', true ) ) {
 
 		if ( is_array( $jetpack_sharing_counts ) && count( $jetpack_sharing_counts ) ) :
+			$sharing_post_urls = array_filter( $jetpack_sharing_counts );
+			if ( $sharing_post_urls ) :
 ?>
 
 	<script type="text/javascript">
-		WPCOM_sharing_counts = <?php echo json_encode( array_flip( $jetpack_sharing_counts ) ); ?>
+		WPCOM_sharing_counts = <?php echo json_encode( array_flip( $sharing_post_urls ) ); ?>
 	</script>
 <?php
+			endif;
 		endif;
 
 		wp_print_scripts( 'sharing-js' );
@@ -461,6 +464,13 @@ function sharing_display( $text = '' ) {
 	if ( in_array( 'get_the_excerpt', (array) $wp_current_filter ) ) {
 		return $text;
 	}
+
+	// check whether we are viewing the front page and whether the front page option is checked
+	$options = get_option( 'sharing-options' );
+	$display_options = $options['global']['show'];
+
+	if ( is_front_page() && ( is_array( $display_options ) && ! in_array( 'index', $display_options ) ) )
+		return $text;
 
 	if ( is_attachment() && in_array( 'the_excerpt', (array) $wp_current_filter ) ) {
 		// Many themes run the_excerpt() conditionally on an attachment page, then run the_content().
